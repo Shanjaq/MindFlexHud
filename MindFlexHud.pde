@@ -309,11 +309,11 @@ void draw()
 }
 
 //The eight EEG powers are output in the following order:
-//delta (0.5 - 2.75Hz): Too much: Brain injuries, learning problems, inability to think, severe ADHD; Too little: Inability to rejuvenate body, inability to revitalize the brain, poor sleep; Optimal: Immune system, natural healing, restorative / deep sleep
-//theta (3.5 - 6.75Hz): Too much: ADHD, depression, hyperactivity, impulsivity, inattentiveness; Too little: Anxiety, poor emotional awareness, stress; Optimal: Creativity, emotional connection, intuition, relaxation
-//low-alpha (7.5 - 9.25Hz): Too much: Daydreaming, inability to focus, too relaxed; Too little: Anxiety, high stress, insomnia, OCD; Optimal: Relaxation
-//high-alpha (10 - 11.75Hz): Too much: Daydreaming, inability to focus, too relaxed; Too little: Anxiety, high stress, insomnia, OCD; Optimal: Relaxation
-//low-beta (13 - 16.75Hz): Too much: Adrenaline, anxiety, high arousal, inability to relax, stress; Too little: ADHD, daydreaming, depression, poor cognition; Optimal: Conscious focus, memory, problem solving
-//high-beta (18 - 29.75Hz): Too much: Adrenaline, anxiety, high arousal, inability to relax, stress; Too little: ADHD, daydreaming, depression, poor cognition; Optimal: Conscious focus, memory, problem solving
-//low-gamma (31 - 39.75Hz): Too much: Anxiety, high arousal, stress; Too little: ADHD, depression, learning disabilities; Binding senses, cognition, information processing, learning, perception, REM sleep
-//mid-gamma (41 - 49.75Hz): Too much: Anxiety, high arousal, stress; Too little: ADHD, depression, learning disabilities; Binding senses, cognition, information processing, learning, perception, REM sleep
+//delta (0.5 - 2.75Hz)
+//theta (3.5 - 6.75Hz)
+//low-alpha (7.5 - 9.25Hz)
+//high-alpha (10 - 11.75Hz)
+//low-beta (13 - 16.75Hz)
+//high-beta (18 - 29.75Hz)
+//low-gamma (31 - 39.75Hz)
+//mid-gamma (41 - 49.75Hz)
