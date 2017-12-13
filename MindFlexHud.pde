@@ -154,8 +154,6 @@ void setup()
 {
   surface.setAlwaysOnTop(true);
   port = new Serial(this, Serial.list()[2], 9600);
-  // Open a file and read its binary data 
-//  byte buffer[] = loadBytes("C:\\test\\eeg_9600.log"); 
 }
 boolean sync1 = false;
 boolean sync2 = false;
@@ -195,19 +193,13 @@ void draw()
             int checksum = 0;
             for (int i = 0; i < pLen; i++)
             {
-              //print((b & 0xff) + " ");
               pBuf[i] = b;
               checksum += b & 0xff;
               b = shift();
             }
-            //print(": " + pLen);
-            //println();
             checksum = ~checksum & 0xff;
             if (checksum == (b & 0xff))
             {
-              //print("OK");
-              //println();
-              
               int pPos = 0;
               while (pPos < pLen)
               {
@@ -247,7 +239,6 @@ void draw()
                         }
                       }
                     }
-                    //print((pBuf[pPos + mPos] & 0xff) + ",");
                     mPos++;
                   }
                 }
@@ -259,7 +250,6 @@ void draw()
                   sync2 = false;
                   pLen = 0;
                 }
-                //println();
                 pPos = pPos + mPos;
               }
               bDone = true;
@@ -316,22 +306,6 @@ void draw()
     fill(bar_colors[i]);
     rect((float(width/bars)*i), height - ((float)(SmoothData[i] / (double)bar_max_values[i]) * height), (float(width)/float(bars)), (float)(SmoothData[i] / (double)bar_max_values[i]) * height);
   }
-
-  // Update the position of the shape
-  //xpos = xpos + ( xspeed * xdirection );
-  //ypos = ypos + ( yspeed * ydirection );
-  
-  // Test to see if the shape exceeds the boundaries of the screen
-  // If it does, reverse its direction by multiplying by -1
-  //if (xpos > width-rad || xpos < rad) {
-  //  xdirection *= -1;
-  //}
-  //if (ypos > height-rad || ypos < rad) {
-  //  ydirection *= -1;
-  //}
-
-  // Draw the shape
-  //ellipse(xpos, ypos, rad, rad);
 }
 
 //The eight EEG powers are output in the following order:
