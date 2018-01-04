@@ -113,13 +113,12 @@ byte[] buffer = new byte[bufLen];
 int readPos = 0;
 int writePos = 0;
 
-int maskIndex(int val)  { return val & (bufLen - 1); }
-void push(byte val)  { assert(!full()); buffer[maskIndex(writePos++ & 0xffff)] = val; }
-byte shift()    { assert(!empty()); return buffer[maskIndex(readPos++ & 0xffff)]; }
+int maskIndex(int val, int len)  { return val & (len - 1); }
+void push(byte val)  { assert(!full()); buffer[maskIndex(writePos++ & 0xffff, bufLen)] = val; }
+byte shift()    { assert(!empty()); return buffer[maskIndex(readPos++ & 0xffff, bufLen)]; }
 boolean empty()    { return readPos == writePos; }
 boolean full()     { return dataLen() == bufLen; }
 int dataLen()     { return (writePos - readPos) & 0xffff; }
-
 
 int getIndex(int code)
 {
@@ -150,14 +149,44 @@ int RawData[] = new int[bars];;
 float SmoothData[] = new float[bars];;
 float LPF_Beta = 0.05; // 0<ß<1
 
+int[][] result;
+
+static int geoBufLen = 256;
+float[][] geoBuffer;
+
+int geoReadPos[] = new int[bars];
+int geoWritePos[] = new int[bars];
+
+void geoPush(float val, int channel)  { assert(!geoFull(channel)); geoBuffer[maskIndex(geoWritePos[channel]++ & 0xffff, geoBufLen)][channel] = val; }
+float geoShift(int channel)    { assert(!geoEmpty(channel)); return geoBuffer[maskIndex(geoReadPos[channel]++ & 0xffff, geoBufLen)][channel]; }
+boolean geoEmpty(int channel)    { return geoReadPos[channel] == geoWritePos[channel]; }
+boolean geoFull(int channel)     { return geoDataLen(channel) == geoBufLen; }
+int geoDataLen(int channel)     { return (geoWritePos[channel] - geoReadPos[channel]) & 0xffff; }
+
+float orbitRadius= 300;
+float phi= radians(1);
+float theta= radians(1);
+
+//Convert spherical coordinates into Cartesian coordinates
+float cameraZ = orbitRadius*sin(phi)*cos(theta);
+float cameraX = orbitRadius*sin(phi)*sin(theta);
+float cameraY = orbitRadius*cos(phi);
+
+PVector lastPos = new PVector();
+PVector lastRot = new PVector();
+
+
 void setup()
 {
+  size(640,480,P3D);
   surface.setAlwaysOnTop(true);
-  port = new Serial(this, Serial.list()[2], 9600);
+  port = new Serial(this, Serial.list()[3], 9600);
+  geoBuffer = new float[geoBufLen][bar_values.length];
 }
 boolean sync1 = false;
 boolean sync2 = false;
 int pLen = 0;
+
 
 void draw() 
 {
@@ -200,12 +229,15 @@ void draw()
             checksum = ~checksum & 0xff;
             if (checksum == (b & 0xff))
             {
+              //print("OK");
+              //println();
+              
               int pPos = 0;
               while (pPos < pLen)
               {
                 int mIndex = getIndex(pBuf[pPos] & 0xff);
                 int mPos = 0;
-                //print(parser_names[mIndex] + ": ");
+                
                 mPos++;
                 if (mIndex != -1)
                 {
@@ -239,6 +271,7 @@ void draw()
                         }
                       }
                     }
+                    //print((pBuf[pPos + mPos] & 0xff) + ",");
                     mPos++;
                   }
                 }
@@ -268,7 +301,6 @@ void draw()
             pLen = 0;
             sync1 = false;
             sync2 = false;
-            //println();
           }
         }
         bDone = true;
@@ -298,15 +330,67 @@ void draw()
       bDone = true;
     }
   } 
+  background(0);
   
-  noStroke();
-  background(10);
   for (int i = 0; i < bars; i++)
   {
     fill(bar_colors[i]);
     rect((float(width/bars)*i), height - ((float)(SmoothData[i] / (double)bar_max_values[i]) * height), (float(width)/float(bars)), (float)(SmoothData[i] / (double)bar_max_values[i]) * height);
+    geoPush((float)(SmoothData[i] / (double)bar_max_values[i]) * height, i);
+    geoShift(i);
   }
+  
+  cameraZ = orbitRadius*sin(phi)*cos(theta);
+  cameraX = orbitRadius*sin(phi)*sin(theta);
+  cameraY = orbitRadius*cos(phi);
+  
+  pushMatrix();
+  
+  camera(cameraX, cameraY, cameraZ, 0, 0, 0.0, 
+         0.0, 1.0, 0.0);
+         
+  noFill();
+  stroke(bar_colors[3]);
+  float stretch_x = 0.5;
+  float stretch_y = 0.5;
+  float stretch_z = 10;
+  
+  for (int i = 2; i < bar_values.length; i++)
+  {
+    beginShape();
+    vertex(0, 0, i*stretch_z);
+    for (int j = 0; j < geoBufLen; j++)
+    {
+      stroke(bar_colors[i]);
+      vertex(j*stretch_x, -geoBuffer[j][i]*stretch_y, i*stretch_z);
+    }
+    vertex(geoBufLen*stretch_x, 0, i*stretch_z);
+    endShape();
+  }
+  popMatrix();
 }
+
+void mousePressed()
+{
+  lastPos.x = mouseX;
+  lastPos.y = mouseY;
+}
+
+void mouseReleased()
+{
+  lastRot.x = theta;
+  lastRot.y = phi;
+}
+
+void mouseDragged()
+{
+  if (mouseButton == LEFT)
+  {
+      theta = lastRot.x + (radians(360 - (((float(mouseX)-lastPos.x)/(float(width)-lastPos.x)) * 360.0f)));
+      phi = lastRot.y + (radians(((float(mouseY)-lastPos.y)/(float(height)-lastPos.y)) * 180.0f));
+  }  
+}
+
 
 //The eight EEG powers are output in the following order:
 //delta (0.5 - 2.75Hz)
